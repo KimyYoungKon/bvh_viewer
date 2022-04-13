@@ -266,18 +266,43 @@ def render():
         glDisable(GL_LIGHTING)
 
 
-    #drawHuman()
+    drawHuman()
 
 
 def drawCube_glDrawElements():
+
     global gVertexArrayIndexed, gIndexArray
     varr = gVertexArrayIndexed
     iarr = gIndexArray
+
+    bvhFile = 'dance.bvh';
+    with open(bvhFile, 'r') as fin:
+        lines = fin.readlines()
+
+    sk = Skeleton()
+    sk.parse(lines)
+
+    motionIndex = 0
+
+    sk.getAllPos()
+    boneDatas = []
+    for bone in sk.bones:
+        jointA = bone[0]
+        jointB = bone[1]
+        posA = sk.joints[jointA].motion
+        posB = sk.joints[jointB].motion
+        boneDatas.append([posA, posB])
+
+    boneDatas = np.array(boneDatas)
+
+
     glEnableClientState(GL_VERTEX_ARRAY)
     glVertexPointer(3, GL_FLOAT, 3 * varr.itemsize, varr)
     glDrawElements(GL_TRIANGLES, iarr.size, GL_UNSIGNED_INT, iarr)
 
-
+    logger.warning("============================================================================")
+    logger.warning(varr)
+    logger.warning("============================================================================")
 
 def drawHuman():
     t = glfw.get_time()
