@@ -15,6 +15,9 @@ KEY_B = False # box body mode
 KEY_SPACE = False # for animation
 
 
+gVertexArrayIndexed = None
+gIndexArray = None
+
 orbit = False
 panning = False
 
@@ -108,6 +111,134 @@ def render():
         glScalef(scale, scale, scale)
         drawObj(hierarchy)
         glDisable(GL_LIGHTING)
+
+    drawLego()
+
+def drawCube_glDrawElements():
+    global gVertexArrayIndexed, gIndexArray
+    varr = gVertexArrayIndexed
+    iarr = gIndexArray
+    glEnableClientState(GL_VERTEX_ARRAY)
+    glVertexPointer(3, GL_FLOAT, 3 * varr.itemsize, varr)
+    glDrawElements(GL_TRIANGLES, iarr.size, GL_UNSIGNED_INT, iarr)
+
+
+
+def drawLego():
+    t = glfw.get_time()
+    glColor3ub(255, 255, 255)
+
+    # body
+    glPushMatrix()
+    glScale(.6, 1, .3)
+    glTranslatef(0, np.sin(6 * t) * 0.7, 0)
+    drawCube_glDrawElements()
+
+    # head
+    glPushMatrix()
+    glScalef(.7, .5, .7)
+    glTranslatef(0, 3.5, 0)
+    drawCube_glDrawElements()
+    glPopMatrix()
+
+    # right arm_1
+    glPushMatrix()
+    glScale(.3, .7, .5)
+    glTranslatef(5, .3, 0)
+    glRotate(-np.sin(3 * t) * 45, 1, 0, 0)
+    drawCube_glDrawElements()
+    # right arm_2
+    glPushMatrix()
+    glScale(1, 1, .7)
+    glTranslatef(0, -2.1, 0)
+    glRotate(-np.sin(3 * t) * 20 + 20, 1, 0, 0)
+    drawCube_glDrawElements()
+    # hand
+    glPushMatrix()
+    glScale(1, .3, .7)
+    glTranslatef(0, -5, 0)
+    drawCube_glDrawElements()
+
+    glPopMatrix()
+    glPopMatrix()
+
+    glPopMatrix()
+
+    # left arm_1
+    glPushMatrix()
+    glScale(.3, .7, .5)
+    glTranslatef(-5, .3, 0)
+    glRotate(np.sin(3 * t) * 45, 1, 0, 0)
+    glColor3ub(255, 255, 255)
+    drawCube_glDrawElements()
+    # left arm_2
+    glPushMatrix()
+    glScale(1, 1, .7)
+    glTranslatef(0, -2.1, 0)
+    glRotate(np.sin(3 * t) * 20 + 20, 1, 0, 0)
+    drawCube_glDrawElements()
+    # hand
+    glPushMatrix()
+    glScale(1, .3, .7)
+    glTranslatef(0, -5, 0)
+    drawCube_glDrawElements()
+    glPopMatrix()
+    glPopMatrix()
+
+    glPopMatrix()
+
+    # hip
+    glPushMatrix()
+    glScalef(1, .3, 1)
+    glTranslatef(0, -4, 0)
+    drawCube_glDrawElements()
+
+    # right leg_1
+    glPushMatrix()
+    glScale(.4, 3, .5)
+    glTranslatef(1.5, -1.3, 0)
+    glRotate(np.sin(3 * t) * 45, 1, 0, 0)
+    drawCube_glDrawElements()
+    # right leg_2
+    glPushMatrix()
+    glScale(1, 1, .6)
+    glTranslatef(0, -2.1, 0)
+    glRotate(-np.sin(3 * t) * 10 - 20, 1, 0, 0)
+    drawCube_glDrawElements()
+    # foot
+    glPushMatrix()
+    glScale(1, .3, 2)
+    glTranslatef(0, -5, 0)
+    drawCube_glDrawElements()
+    glPopMatrix()
+    glPopMatrix()
+
+    glPopMatrix()
+
+    # left leg_1
+    glPushMatrix()
+    glScale(.4, 3, .5)
+    glTranslatef(-1.5, -1.3, 0)
+    glRotate(-np.sin(3 * t) * 45, 1, 0, 0)
+    drawCube_glDrawElements()
+    # left leg_2
+    glPushMatrix()
+    glScale(1, 1, .6)
+    glTranslatef(0, -2.1, 0)
+    glRotate(np.sin(3 * t) * 10 - 20, 1, 0, 0)
+    drawCube_glDrawElements()
+    # foot
+    glPushMatrix()
+    glScale(1, .3, 2)
+    glTranslatef(0, -5, 0)
+    drawCube_glDrawElements()
+    glPopMatrix()
+    glPopMatrix()
+
+    glPopMatrix()
+
+    glPopMatrix()
+    glPopMatrix()
 
 
 def drawObj(data):
@@ -334,7 +465,36 @@ def cursor_callback(window, xpos, ypos):
         prev_ypos=ypos
 
 
+def createVertexAndIndexArrayIndexed():
+    varr = np.array([
+            ( -1 ,  1 ,  1 ), # v0
+            (  1 ,  1 ,  1 ), # v1
+            (  1 , -1 ,  1 ), # v2
+            ( -1 , -1 ,  1 ), # v3
+            ( -1 ,  1 , -1 ), # v4
+            (  1 ,  1 , -1 ), # v5
+            (  1 , -1 , -1 ), # v6
+            ( -1 , -1 , -1 ), # v7
+            ], 'float32')
+    iarr = np.array([
+            (0,2,1),
+            (0,3,2),
+            (4,5,6),
+            (4,6,7),
+            (0,1,5),
+            (0,5,4),
+            (3,6,2),
+            (3,7,6),
+            (1,2,6),
+            (1,6,5),
+            (0,7,3),
+            (0,4,7),
+            ])
+    return varr, iarr
+
+
 def main():
+  global gVertexArrayIndexed, gIndexArray
   if not glfw.init():
       return
 
@@ -350,6 +510,8 @@ def main():
   glfw.set_mouse_button_callback(window, button_callback)
   glfw.set_cursor_pos_callback(window,cursor_callback)
   glfw.set_scroll_callback(window,scroll_callback)
+
+  gVertexArrayIndexed, gIndexArray = createVertexAndIndexArrayIndexed()
 
 
   glfw.swap_interval(1)
