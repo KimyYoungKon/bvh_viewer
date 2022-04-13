@@ -48,14 +48,11 @@ def render():
     global glScale
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
     glEnable(GL_DEPTH_TEST)
 
-    if KEY_Z:
-        #solid
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    else:
-        #wire frame
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -79,6 +76,7 @@ def render():
     glLoadIdentity()
     gluLookAt(eyeX,eyeY,eyeZ,atX,atY,atZ,upX,upY,upZ)
     drawFrame()
+
 
     if ON: #obj file
         glEnable(GL_LIGHTING)
@@ -112,7 +110,9 @@ def render():
         drawObj(hierarchy)
         glDisable(GL_LIGHTING)
 
-    drawLego()
+
+    drawHuman()
+
 
 def drawCube_glDrawElements():
     global gVertexArrayIndexed, gIndexArray
@@ -124,36 +124,36 @@ def drawCube_glDrawElements():
 
 
 
-def drawLego():
+def drawHuman():
     t = glfw.get_time()
     glColor3ub(255, 255, 255)
 
-    # body
+    # Spine
     glPushMatrix()
     glScale(.6, 1, .3)
     glTranslatef(0, np.sin(6 * t) * 0.7, 0)
     drawCube_glDrawElements()
 
-    # head
+    # Head
     glPushMatrix()
     glScalef(.7, .5, .7)
     glTranslatef(0, 3.5, 0)
     drawCube_glDrawElements()
     glPopMatrix()
 
-    # right arm_1
+    # RightArm
     glPushMatrix()
     glScale(.3, .7, .5)
     glTranslatef(5, .3, 0)
     glRotate(-np.sin(3 * t) * 45, 1, 0, 0)
     drawCube_glDrawElements()
-    # right arm_2
+    # RightForeArm
     glPushMatrix()
     glScale(1, 1, .7)
     glTranslatef(0, -2.1, 0)
     glRotate(-np.sin(3 * t) * 20 + 20, 1, 0, 0)
     drawCube_glDrawElements()
-    # hand
+    # RightHand
     glPushMatrix()
     glScale(1, .3, .7)
     glTranslatef(0, -5, 0)
@@ -161,84 +161,86 @@ def drawLego():
 
     glPopMatrix()
     glPopMatrix()
-
     glPopMatrix()
 
-    # left arm_1
+
+    # LeftArm
     glPushMatrix()
     glScale(.3, .7, .5)
     glTranslatef(-5, .3, 0)
     glRotate(np.sin(3 * t) * 45, 1, 0, 0)
     glColor3ub(255, 255, 255)
     drawCube_glDrawElements()
-    # left arm_2
+    # LeftForeArm
     glPushMatrix()
     glScale(1, 1, .7)
     glTranslatef(0, -2.1, 0)
     glRotate(np.sin(3 * t) * 20 + 20, 1, 0, 0)
     drawCube_glDrawElements()
-    # hand
+    # LeftHand
     glPushMatrix()
     glScale(1, .3, .7)
     glTranslatef(0, -5, 0)
     drawCube_glDrawElements()
+
+    glPopMatrix()
     glPopMatrix()
     glPopMatrix()
 
-    glPopMatrix()
-
-    # hip
+    # Hips
     glPushMatrix()
     glScalef(1, .3, 1)
     glTranslatef(0, -4, 0)
     drawCube_glDrawElements()
 
-    # right leg_1
+
+    # RightUpLeg
     glPushMatrix()
     glScale(.4, 3, .5)
     glTranslatef(1.5, -1.3, 0)
     glRotate(np.sin(3 * t) * 45, 1, 0, 0)
     drawCube_glDrawElements()
-    # right leg_2
+    # RightLeg
     glPushMatrix()
     glScale(1, 1, .6)
     glTranslatef(0, -2.1, 0)
     glRotate(-np.sin(3 * t) * 10 - 20, 1, 0, 0)
     drawCube_glDrawElements()
-    # foot
+    # RightFoot
     glPushMatrix()
     glScale(1, .3, 2)
     glTranslatef(0, -5, 0)
     drawCube_glDrawElements()
+
+    glPopMatrix()
     glPopMatrix()
     glPopMatrix()
 
-    glPopMatrix()
 
-    # left leg_1
+
+    # LeftUpLeg
     glPushMatrix()
     glScale(.4, 3, .5)
     glTranslatef(-1.5, -1.3, 0)
     glRotate(-np.sin(3 * t) * 45, 1, 0, 0)
     drawCube_glDrawElements()
-    # left leg_2
+    # LeftLeg
     glPushMatrix()
     glScale(1, 1, .6)
     glTranslatef(0, -2.1, 0)
     glRotate(np.sin(3 * t) * 10 - 20, 1, 0, 0)
     drawCube_glDrawElements()
-    # foot
+    # LeftFoot
     glPushMatrix()
     glScale(1, .3, 2)
     glTranslatef(0, -5, 0)
     drawCube_glDrawElements()
     glPopMatrix()
     glPopMatrix()
-
+    glPopMatrix()
+    glPopMatrix()
     glPopMatrix()
 
-    glPopMatrix()
-    glPopMatrix()
 
 
 def drawObj(data):
@@ -499,7 +501,7 @@ def main():
       return
 
 
-  window = glfw.create_window(800, 600, "My OpenGL window", None, None)
+  window = glfw.create_window(1024, 768, "My OpenGL window", None, None)
 
   if not window:
       glfw.terminate()
