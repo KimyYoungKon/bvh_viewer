@@ -4,12 +4,19 @@ from OpenGL.GLU import *
 import OpenGL.GL.shaders as shaders
 import math
 import numpy as np
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 KEY_S = False # smoothing
 KEY_Z = True # solid mode
 KEY_B = False # box body mode
 KEY_SPACE = False # for animation
 
+
+orbit = False
+panning = False
 
 Azimuth = 0
 Elevation = 30
@@ -230,9 +237,107 @@ def drawFrame():
     glEnd()
 
 
+def drop_callback(window, paths):
+    logger.warning("drop callback")
+    global motion, hierarchy, ON, KEY_SPACE, frame_now, frame_time, frame_num
+    motion = []
+    hierarchy = None
+    ON = False
+    KEY_SPACE = False
+    frame_now = 0
+    frame_time = None
+    frame_num = None
+
+
+def handle_dropped_file(path):
+    global ON
+    global frame_time, frame_num
+    global motion, hierarchy
+    global scale
+
+    file=open(path, 'r')
+    col = 0
+    mode = 0
+    now = None
+    joints = []
+    hierarchy_data = None
+    motion_data = []
+    scale = 1
+
+    while True:
+        line = file.readline()
+        if not line:
+            break
+        tmp = line.strip("\n").split()
+
+        logger.info("=======================================")
+        logger.info(tmp)
+        logger.info("=======================================")
+
+
+
+def button_callback(window,button,action,mod):
+    logger.warning("button click")
+    global orbit, panning, prev_xpos, prev_ypos
+    if button==glfw.MOUSE_BUTTON_LEFT:
+        if action==glfw.PRESS:
+            orbit = True
+            prev_xpos = -1
+            prev_ypos = -1
+        elif action==glfw.RELEASE:
+            orbit = False
+        if button==glfw.MOUSE_BUTTON_RIGHT:
+            if action==glfw.PRESS:
+                panning=True
+                prev_xpos = -1
+                prev_ypos = -1
+            elif action==glfw.RELEASE:
+                panning = False
+
+def scroll_callback(window,xoffset,yoffset):
+    logger.warning("scroll callback")
+    global distance
+    if yoffset == -1 and distance<1000:
+        distance += 0.5
+    elif yoffset == 1 and distance>0.5:
+        distance -= 0.5
+
+
+def cursor_callback(window, xpos, ypos):
+    logger.warning("cursor callback")
+    global prev_xpos, prev_ypos, Azimuth, Elevation, orbit, panning, pan_lr, pan_ud
+    if orbit:
+        if prev_xpos != -1 and prev_ypos != -1:
+            xdif = xpos - prev_xpos
+            ydif = ypos - prev_ypos
+            if Elevation < 90 or Elevation >= 270:
+                Azimuth -= xdif*2
+                Elevation += ydif*2
+            elif Elevation >= 90 and Elevation < 270:
+                Azimuth += xdif*2
+                Elevation += ydif*2
+            Azimuth = Azimuth%360
+            Elevation = Elevation%360
+        prev_xpos = xpos
+        prev_ypos = ypos
+    elif panning:
+        if prev_xpos != -1 and prev_ypos != -1:
+            xdif = xpos - prev_xpos
+            ydif = ypos - prev_ypos
+            if Elevation < 180:
+                pan_lr -= xdif/200
+                pan_ud += ydif/200
+            elif Elevation >= 180:
+                pan_lr -= xdif/200
+                pan_ud -= ydif/200
+        prev_xpos=xpos
+        prev_ypos=ypos
+
+
 def main():
   if not glfw.init():
       return
+
 
   window = glfw.create_window(800, 600, "My OpenGL window", None, None)
 
@@ -241,7 +346,10 @@ def main():
       return
 
   glfw.make_context_current(window)
-
+  glfw.set_drop_callback(window, drop_callback)
+  glfw.set_mouse_button_callback(window, button_callback)
+  glfw.set_cursor_pos_callback(window,cursor_callback)
+  glfw.set_scroll_callback(window,scroll_callback)
 
 
   glfw.swap_interval(1)
